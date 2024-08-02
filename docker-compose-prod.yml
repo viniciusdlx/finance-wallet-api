@@ -1,0 +1,36 @@
+services:
+    postgres:
+        image: postgres:latest
+        env_file:
+            - .env.production.local
+        ports:
+            - '5432:5432'
+        volumes:
+            - ./data:/var/lib/postgresql/data
+            - /etc/localtime:/etc/localtime:ro
+            - /etc/timezone:/etc/timezone:ro
+
+    redis:
+        image: redis:latest
+        ports:
+            - '6379:6379'
+        volumes:
+            - ./redis-data:/data
+
+    app:
+        image: finance-wallet-backend-prod
+        build:
+            dockerfile: Dockerfile.prod
+            context: .
+            target: production
+        volumes:
+            - .:/usr/src/app
+            - /usr/src/app/node_modules
+        command: npm run start:prod
+        depends_on:
+            - postgres
+            - redis
+        env_file:
+            - .env.production.local
+        ports:
+            - '8080:8080'
